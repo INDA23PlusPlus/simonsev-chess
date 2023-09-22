@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 use std::clone::Clone;
 use std::cmp::PartialEq;
 use std::io;
@@ -325,6 +326,10 @@ impl Game {
 }
 
 #[derive(Clone)]
+=======
+use std::cmp::PartialEq;
+
+>>>>>>> origin/main
 pub struct Square {
     pub x: u8,
     pub y: u8,
@@ -355,6 +360,7 @@ impl Square {
     }
 }
 
+<<<<<<< HEAD
 #[derive(Clone)]
 pub struct Boards {
     pub board: Vec<Vec<Square>>,
@@ -486,6 +492,8 @@ pub fn move_piece(from: &String, to: &String, mut board: Vec<Vec<Square>>) -> Ve
     board
 }
 
+=======
+>>>>>>> origin/main
 pub fn square_to_unoccupied(pos: &Move, board: &mut Vec<Vec<Square>>) {
     board[pos.x as usize][pos.y as usize].piece.piece_type = PieceType::Unoccupied;
     board[pos.x as usize][pos.y as usize].piece.white = true;
@@ -493,6 +501,7 @@ pub fn square_to_unoccupied(pos: &Move, board: &mut Vec<Vec<Square>>) {
     board[pos.x as usize][pos.y as usize].occupied = false;
 }
 
+<<<<<<< HEAD
 pub fn generate_moves(
     x: usize,
     y: usize,
@@ -548,11 +557,39 @@ pub fn generate_moves(
                 &mut white_check_board,
                 &mut black_check_board,
             )
+=======
+pub fn generate_moves(x: usize, y: usize, board: &mut Vec<Vec<Square>>) {
+    match board[x as usize][y as usize].piece.piece_type {
+        PieceType::Pawn => {
+            board[x as usize][y as usize].piece.moves =
+                moves_pawn(&board[x as usize][y as usize], board)
+        }
+        PieceType::Rook => {
+            board[x as usize][y as usize].piece.moves =
+                moves_rook(&board[x as usize][y as usize], board)
+        }
+        PieceType::Knight => {
+            board[x as usize][y as usize].piece.moves =
+                moves_knight(&board[x as usize][y as usize], board)
+        }
+        PieceType::Bishop => {
+            board[x as usize][y as usize].piece.moves =
+                moves_bishop(&board[x as usize][y as usize], board)
+        }
+        PieceType::Queen => {
+            board[x as usize][y as usize].piece.moves =
+                moves_queen(&board[x as usize][y as usize], board)
+        }
+        PieceType::King => {
+            board[x as usize][y as usize].piece.moves =
+                moves_king(&board[x as usize][y as usize], board)
+>>>>>>> origin/main
         }
         _ => (),
     }
 }
 
+<<<<<<< HEAD
 pub fn print_check_board(mut check_board: &Vec<Vec<bool>>) {
     for i in (0..check_board.len()).rev() {
         for j in 0..check_board[i].len() {
@@ -562,6 +599,8 @@ pub fn print_check_board(mut check_board: &Vec<Vec<bool>>) {
     }
 }
 
+=======
+>>>>>>> origin/main
 pub fn square_to_square(move_from: &Move, move_to: Move, board: &mut Vec<Vec<Square>>) {
     match board[move_from.x as usize][move_from.y as usize]
         .piece
@@ -595,7 +634,11 @@ pub fn square_to_square(move_from: &Move, move_to: Move, board: &mut Vec<Vec<Squ
         PieceType::King => {
             board[move_to.x as usize][move_to.y as usize]
                 .piece
+<<<<<<< HEAD
                 .piece_type = PieceType::King
+=======
+                .piece_type = PieceType::Queen
+>>>>>>> origin/main
         }
         PieceType::Unoccupied => {
             board[move_to.x as usize][move_to.y as usize]
@@ -611,6 +654,7 @@ pub fn square_to_square(move_from: &Move, move_to: Move, board: &mut Vec<Vec<Squ
         board[move_from.x as usize][move_from.y as usize].occupied;
 }
 
+<<<<<<< HEAD
 pub fn print_board(mut board: &Vec<Vec<Square>>) {
     for i in (0..board.len()).rev() {
         for j in 0..board[i].len() {
@@ -618,13 +662,41 @@ pub fn print_board(mut board: &Vec<Vec<Square>>) {
         }
         println!("");
     }
+=======
+pub struct Piece {
+    pub piece_type: PieceType,
+    pub white: bool,
+    pub moves: Vec<Move>,
+}
+
+#[derive(PartialEq, Eq)]
+pub enum PieceType {
+    Pawn,
+    Rook,
+    Knight,
+    Bishop,
+    Queen,
+    King,
+    Unoccupied,
+}
+
+#[derive(PartialEq, Eq)]
+pub struct Move {
+    pub x: u8,
+    pub y: u8,
+>>>>>>> origin/main
 }
 
 impl Move {
     pub fn move_to_string(&self) -> String {
         let mut s = String::new();
+<<<<<<< HEAD
         s.push((&self.y + 65) as char);
         s.push((&self.x + 49) as char);
+=======
+        s.push((&self.x + 65) as char);
+        s.push((&self.y + 49) as char);
+>>>>>>> origin/main
 
         s
     }
@@ -636,18 +708,29 @@ impl Move {
 }
 
 pub fn string_to_move(input: &String) -> Move {
+<<<<<<< HEAD
     let mut x: &char = &input.chars().nth(1).unwrap();
     let mut y: &char = &input.chars().nth(0).unwrap();
+=======
+    let mut x: &char = &input.chars().nth(0).unwrap();
+    let mut y: &char = &input.chars().nth(1).unwrap();
+>>>>>>> origin/main
 
     let mut x = x.to_owned() as u8;
     let mut y = y.to_owned() as u8;
 
+<<<<<<< HEAD
     x -= 49;
     y -= 65;
+=======
+    x -= 65;
+    y -= 49;
+>>>>>>> origin/main
 
     Move { x: x, y: y }
 }
 
+<<<<<<< HEAD
 fn check_move(
     square: &Square,
     x: i8,
@@ -731,20 +814,44 @@ fn check_move(
                 return true;
             }
         }
+=======
+fn check_move(square: &Square, x: i8, y: i8, board: &Vec<Vec<Square>>) -> bool {
+    let x_: i8 = (square.x as i8) + x;
+    let y_: i8 = (square.y as i8) + y;
+
+    if x_ <= 7 && x_ >= 0 && y_ >= 0 && y_ <= 7 {
+        let check_square: &Square = &board[x_ as usize][y_ as usize];
+        if board[x_ as usize][y_ as usize].occupied {
+            if square.piece.white == check_square.piece.white {
+                return false;
+            }
+
+            match check_square.piece.piece_type {
+                PieceType::King => return false,
+                _ => return true,
+            }
+        }
+        return true;
+>>>>>>> origin/main
     }
     false
 }
 
+<<<<<<< HEAD
 fn moves_pawn(
     square: &Square,
     board: &Vec<Vec<Square>>,
     mut white_check_board: &mut Vec<Vec<bool>>,
     mut black_check_board: &mut Vec<Vec<bool>>,
 ) -> Vec<Move> {
+=======
+pub fn moves_pawn(square: &Square, board: &Vec<Vec<Square>>) -> Vec<Move> {
+>>>>>>> origin/main
     let mut moves: Vec<Move> = Vec::new();
     let x = square.x;
     let y = square.y;
 
+<<<<<<< HEAD
     if square.piece.white {
         if x == 1 {
             if check_move(
@@ -853,12 +960,29 @@ fn moves_rook(
     mut white_check_board: &mut Vec<Vec<bool>>,
     mut black_check_board: &mut Vec<Vec<bool>>,
 ) -> Vec<Move> {
+=======
+    if check_move(&square, 1, -1, board) {
+        moves.push(Move { x: x + 1, y: y - 1 });
+    }
+    if check_move(&square, 1, 0, board) {
+        moves.push(Move { x: x + 1, y: y });
+    }
+    if check_move(&square, 1, 1, board) {
+        moves.push(Move { x: x + 1, y: y + 1 });
+    }
+
+    moves
+}
+
+fn moves_rook(square: &Square, board: &Vec<Vec<Square>>) -> Vec<Move> {
+>>>>>>> origin/main
     let mut moves: Vec<Move> = Vec::new();
     let x: u8 = square.x;
     let y: u8 = square.y;
     let p: i8 = -1;
 
     for i in 0..2 {
+<<<<<<< HEAD
         let mut boolx = true;
         let mut booly = true;
         for j in 1..8 {
@@ -920,6 +1044,84 @@ fn moves_knight(
     mut white_check_board: &mut Vec<Vec<bool>>,
     mut black_check_board: &mut Vec<Vec<bool>>,
 ) -> Vec<Move> {
+=======
+        for j in 0..8 {
+            let k = j * p.pow(i);
+            let x_ = x as i8 + k;
+            let y_ = y as i8 + k;
+
+            if check_move(&square, x_, y as i8, &board) {
+                moves.push(Move { x: x_ as u8, y: y});
+            }
+            if check_move(&square, x as i8, y_, &board) {
+                moves.push(Move { x: x, y: y_ as u8});
+            }
+        }
+    }
+/* 
+    if square.piece.white {
+        for i in (x + 1)..8 {
+            let sq_forward: &Square = &board[x as usize][i as usize];
+            let piece_forward: &Piece = &sq_forward.piece;
+            if piece_forward.white {
+                match piece_forward.piece_type {
+                    PieceType::Unoccupied => moves.push(Move { x: i, y: y }),
+                    _ => break,
+                }
+            } else {
+                match piece_forward.piece_type {
+                    PieceType::King => break,
+                    _ => {
+                        moves.push(Move { x: i, y: y });
+                        break;
+                    }
+                }
+            }
+        }
+
+        for i in (0..(x - 1)).rev() {
+            let sq_check: &Square = &board[i as usize][x as usize];
+            let piece_check: &Piece = &sq_check.piece;
+            if piece_check.white {
+                match piece_check.piece_type {
+                    PieceType::Unoccupied => moves.push(Move { x: i, y: y }),
+                    _ => break,
+                }
+            } else {
+                match piece_check.piece_type {
+                    PieceType::King => break,
+                    _ => {
+                        moves.push(Move { x: i, y: y });
+                        break;
+                    }
+                }
+            }
+        }
+
+        for i in (y + 1)..8 {
+            let sq_check: &Square = &board[x as usize][i as usize];
+            let piece_check: &Piece = &sq_check.piece;
+            if piece_check.white {
+                match piece_check.piece_type {
+                    PieceType::Unoccupied => moves.push(Move { x: x, y: i }),
+                    _ => break,
+                }
+            } else {
+                match piece_check.piece_type {
+                    PieceType::King => break,
+                    _ => {
+                        moves.push(Move { x: x, y: i });
+                        break;
+                    }
+                }
+            }
+        }
+    }*/
+    moves
+}
+
+pub fn moves_knight(square: &Square, board: &Vec<Vec<Square>>) -> Vec<Move> {
+>>>>>>> origin/main
     let mut moves: Vec<Move> = Vec::new();
     let x = square.x;
     let y = square.y;
@@ -929,6 +1131,7 @@ fn moves_knight(
         for j in 0..2 {
             let x_: i8 = 2 * p.pow(i);
             let y_: i8 = p.pow(j);
+<<<<<<< HEAD
             if check_move(
                 &square,
                 x_,
@@ -937,6 +1140,9 @@ fn moves_knight(
                 &mut white_check_board,
                 &mut black_check_board,
             ) {
+=======
+            if check_move(&square, x_, y_, &board) {
+>>>>>>> origin/main
                 moves.push(Move {
                     x: (x as i8 + x_) as u8,
                     y: (y as i8 + y_) as u8,
@@ -949,6 +1155,7 @@ fn moves_knight(
         for j in 0..2 {
             let x_: i8 = p.pow(i);
             let y_: i8 = 2 * p.pow(j);
+<<<<<<< HEAD
             if check_move(
                 &square,
                 x_,
@@ -957,6 +1164,9 @@ fn moves_knight(
                 &mut white_check_board,
                 &mut black_check_board,
             ) {
+=======
+            if check_move(&square, x_, y_, &board) {
+>>>>>>> origin/main
                 moves.push(Move {
                     x: (x as i8 + x_) as u8,
                     y: (y as i8 + y_) as u8,
@@ -967,12 +1177,16 @@ fn moves_knight(
     moves
 }
 
+<<<<<<< HEAD
 fn moves_bishop(
     square: &Square,
     board: &Vec<Vec<Square>>,
     mut white_check_board: &mut Vec<Vec<bool>>,
     mut black_check_board: &mut Vec<Vec<bool>>,
 ) -> Vec<Move> {
+=======
+fn moves_bishop(square: &Square, board: &Vec<Vec<Square>>) -> Vec<Move> {
+>>>>>>> origin/main
     let mut moves: Vec<Move> = Vec::new();
     let x = square.x;
     let y = square.y;
@@ -983,6 +1197,7 @@ fn moves_bishop(
             for k in 1..8 {
                 let x_ = k * p.pow(i);
                 let y_ = k * p.pow(j);
+<<<<<<< HEAD
                 if check_move(
                     &square,
                     x_,
@@ -991,14 +1206,22 @@ fn moves_bishop(
                     &mut white_check_board,
                     &mut black_check_board,
                 ) {
+=======
+                if !check_move(&square, x_, y_, &board) {
+                    break;
+                } else {
+>>>>>>> origin/main
                     moves.push(Move {
                         x: (x as i8 + x_) as u8,
                         y: (y as i8 + y_) as u8,
                     });
+<<<<<<< HEAD
                 } else {
                     break;
                 }
                 if x as i8 + x_ <= 7 && x as i8 + k >= 0 && y as i8 + y_ >= 0 && y as i8 + y_ <= 7 {
+=======
+>>>>>>> origin/main
                     if board[(x as i8 + x_) as usize][(y as i8 + y_) as usize].occupied {
                         break;
                     }
@@ -1009,12 +1232,16 @@ fn moves_bishop(
     moves
 }
 
+<<<<<<< HEAD
 fn moves_queen(
     square: &Square,
     board: &Vec<Vec<Square>>,
     mut white_check_board: &mut Vec<Vec<bool>>,
     mut black_check_board: &mut Vec<Vec<bool>>,
 ) -> Vec<Move> {
+=======
+fn moves_queen(square: &Square, board: &Vec<Vec<Square>>) -> Vec<Move> {
+>>>>>>> origin/main
     let mut moves: Vec<Move> = Vec::new();
     let x = square.x;
     let y = square.y;
@@ -1025,6 +1252,7 @@ fn moves_queen(
             for k in 1..8 {
                 let x_ = k * p.pow(i);
                 let y_ = k * p.pow(j);
+<<<<<<< HEAD
                 if check_move(
                     &square,
                     x_,
@@ -1033,10 +1261,14 @@ fn moves_queen(
                     &mut white_check_board,
                     &mut black_check_board,
                 ) {
+=======
+                if check_move(&square, x_, y_, &board) {
+>>>>>>> origin/main
                     moves.push(Move {
                         x: (x as i8 + x_) as u8,
                         y: (y as i8 + y_) as u8,
                     });
+<<<<<<< HEAD
                 } else {
                     break;
                 }
@@ -1045,12 +1277,15 @@ fn moves_queen(
                     if board[(x as i8 + x_) as usize][(y as i8 + y_) as usize].occupied {
                         break;
                     }
+=======
+>>>>>>> origin/main
                 }
             }
         }
     }
 
     for i in 0..2 {
+<<<<<<< HEAD
         let mut boolx = true;
         let mut booly = true;
         for j in 1..8 {
@@ -1065,10 +1300,16 @@ fn moves_queen(
                     &mut black_check_board,
                 )
             {
+=======
+        for j in 1..8 {
+            let k_ = j * p.pow(i);
+            if check_move(&square, k_, 0, &board) {
+>>>>>>> origin/main
                 moves.push(Move {
                     x: (x as i8 + k_) as u8,
                     y: y,
                 });
+<<<<<<< HEAD
             } else {
                 boolx = false;
             }
@@ -1082,29 +1323,41 @@ fn moves_queen(
                     &mut black_check_board,
                 )
             {
+=======
+            }
+            if check_move(&square, 0, y as i8 + k_, &board) {
+>>>>>>> origin/main
                 moves.push(Move {
                     x: x,
                     y: (y as i8 + k_) as u8,
                 });
+<<<<<<< HEAD
             } else {
                 booly = false;
+=======
+>>>>>>> origin/main
             }
         }
     }
     moves
 }
 
+<<<<<<< HEAD
 fn moves_king(
     square: &Square,
     board: &Vec<Vec<Square>>,
     mut white_check_board: &mut Vec<Vec<bool>>,
     mut black_check_board: &mut Vec<Vec<bool>>,
 ) -> Vec<Move> {
+=======
+fn moves_king(square: &Square, board: &Vec<Vec<Square>>) -> Vec<Move> {
+>>>>>>> origin/main
     let mut moves: Vec<Move> = Vec::new();
     let x = square.x;
     let y = square.y;
 
     for i in -1i8..2 {
+<<<<<<< HEAD
         if check_move(
             &square,
             i,
@@ -1113,11 +1366,15 @@ fn moves_king(
             &mut white_check_board,
             &mut black_check_board,
         ) {
+=======
+        if check_move(&square, (x as i8 + i), y as i8 + 1, &board) {
+>>>>>>> origin/main
             moves.push(Move {
                 x: (x as i8 + i) as u8,
                 y: y + 1,
             });
         }
+<<<<<<< HEAD
         if check_move(
             &square,
             i,
@@ -1126,6 +1383,9 @@ fn moves_king(
             &mut white_check_board,
             &mut black_check_board,
         ) {
+=======
+        if check_move(&square, (x as i8 + i), y as i8 - 1, &board) {
+>>>>>>> origin/main
             moves.push(Move {
                 x: (x as i8 + i) as u8,
                 y: y + 1,
@@ -1133,6 +1393,7 @@ fn moves_king(
         }
     }
 
+<<<<<<< HEAD
     if check_move(
         &square,
         1,
@@ -1151,10 +1412,17 @@ fn moves_king(
         &mut white_check_board,
         &mut black_check_board,
     ) {
+=======
+    if check_move(&square, x as i8 + 1, y as i8, &board) {
+        moves.push(Move { x: x + 1, y: y });
+    }
+    if check_move(&square, x as i8 - 1, y as i8, &board) {
+>>>>>>> origin/main
         moves.push(Move { x: x - 1, y: y });
     }
     moves
 }
+<<<<<<< HEAD
 
 fn build_board() -> Vec<Vec<Square>> {
     let mut board: Vec<Vec<Square>> = Vec::new();
@@ -1370,3 +1638,5 @@ fn build_line(line: u8) -> Vec<Square> {
     }
     return line_vec;
 }
+=======
+>>>>>>> origin/main
