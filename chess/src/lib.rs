@@ -4,6 +4,7 @@ use std::io;
 
 #[derive(Clone)]
 
+//
 // move_history not yet implemented
 pub struct Game {
     boards: Boards,
@@ -44,7 +45,6 @@ impl Game {
     fn check_input(input: &String) -> bool {
 
         if input.len() != 2 {
-            println!("too long");
             return false;
         }
 
@@ -73,12 +73,12 @@ impl Game {
     // are improperly formatted or if the move is not valid
     pub fn do_turn(mut self) -> Game{
         if !Self::check_input(&self.move_from) || !Self::check_input(&self.move_from) {
-            println!("faulty input");
+            self.reset_moves();
             return self;
         }
 
         if !&self.check_move_valid(){
-            println!("invalid move");
+            self.reset_moves();
             return self;
         }
 
@@ -86,6 +86,7 @@ impl Game {
 
         self = self.find_all_moves();
         self = self.clear_self_checking_moves();
+        self.reset_moves();
 
         if(self.check_for_mate()) {
             self.mate = true;
@@ -94,6 +95,11 @@ impl Game {
 
         self.white_turn = !self.white_turn;
         self
+    }
+    
+    fn reset_moves(&mut self){
+        self.move_from = String::from("");
+        self.move_to = String::from("2");
     }
 
     // Returns clone of board
@@ -106,15 +112,12 @@ impl Game {
         let mv_to = string_to_move(&self.move_to);
 
         if !self.boards.board[mv_from.x as usize][mv_from.y as usize].occupied {
-            println!("there is no piece on this square");
             return false;
         }
         if self.boards.board[mv_from.x as usize][mv_from.y as usize].piece.white != self.white_turn {
-            println!("trying to move a piece of the wrong color");
             return false;
         }
         if !self.boards.board[mv_from.x as usize][mv_from.y as usize].piece.moves.contains(&mv_to){
-            println!("this move is not possible");
             return false;
         }
         true
