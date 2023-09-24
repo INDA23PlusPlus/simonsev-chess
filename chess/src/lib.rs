@@ -3,17 +3,24 @@ use std::cmp::PartialEq;
 use std::io;
 
 #[derive(Clone)]
+
+// move_history not yet implemented
 pub struct Game {
-    pub boards: Boards,
+    boards: Boards,
     pub white_turn: bool,
     pub move_history: Vec<String>,
-    pub w_king_pos: Move,
-    pub b_king_pos: Move,
+    w_king_pos: Move,
+    b_king_pos: Move,
+    move_from: String,
+    move_to: String,
+    pub mate: bool,
 }
 
 impl Game {
+
+    // Returns an instance of game, ready to be played :)
     pub fn new() -> Game {
-        Game {
+        let mut game = Game {
             boards: Boards {
                 board: build_board(),
                 white_check_board: build_check_board(),
@@ -23,19 +30,105 @@ impl Game {
             move_history: Vec::new(),
             w_king_pos: Move { x: 0, y: 4 },
             b_king_pos: Move { x: 7, y: 4 },
+            move_from: String::new(),
+            move_to: String::new(),
+            mate: false,
+        };
+        game = game.find_all_moves();
+        game = game.clear_self_checking_moves();
+        game
+    }
+
+    // Takes one String as input, checks if it is formatted 
+    // correctly to use as a move, returns false if not and vice versa
+    fn check_input(input: &String) -> bool {
+
+        if input.len() != 2 {
+            println!("too long");
+            return false;
         }
+
+        let x = input.chars().nth(1).unwrap() as u8;
+        let y = input.chars().nth(0).unwrap() as u8;
+        if x < 49 || x > 56 || y < 65 || y > 72 {
+            return false;
+        }
+        true
+    }
+
+    // Takes two strings as input 
+    // Sets move_from (in self) to first input and move_to (in self) to second input
+    // Input should be formatted as board positions 
+    // i.e. first a capital letter from A to H (incluive)
+    // and then a number from 1 to 8 (inclusic)
+    // and of length 2
+    pub fn input_move(&mut self, move_from: String, move_to: String) {
+        self.move_from = move_from;
+        self.move_to = move_to;
+    }
+    
+    // Does a turn, updates the board and checks for mate, returns self
+    // If the game is mate, whose turn it is will not change
+    // Returns self early without doing anything if move_from and move_to 
+    // are improperly formatted or if the move is not valid
+    pub fn do_turn(mut self) -> Game{
+        if !Self::check_input(&self.move_from) || !Self::check_input(&self.move_from) {
+            println!("faulty input");
+            return self;
+        }
+
+        if !&self.check_move_valid(){
+            println!("invalid move");
+            return self;
+        }
+
+        self = self.do_move();
+
+        self = self.find_all_moves();
+        self = self.clear_self_checking_moves();
+
+        if(self.check_for_mate()) {
+            self.mate = true;
+            return self;
+        }
+
+        self.white_turn = !self.white_turn;
+        self
+    }
+
+    // Returns clone of board
+    pub fn get_board(&self) -> Vec<Vec<Square>> {
+        return self.boards.board.clone();
+    }
+
+    fn check_move_valid(&self) -> bool {
+        let mv_from = string_to_move(&self.move_from);
+        let mv_to = string_to_move(&self.move_to);
+
+        if !self.boards.board[mv_from.x as usize][mv_from.y as usize].occupied {
+            println!("there is no piece on this square");
+            return false;
+        }
+        if self.boards.board[mv_from.x as usize][mv_from.y as usize].piece.white != self.white_turn {
+            println!("trying to move a piece of the wrong color");
+            return false;
+        }
+        if !self.boards.board[mv_from.x as usize][mv_from.y as usize].piece.moves.contains(&mv_to){
+            println!("this move is not possible");
+            return false;
+        }
+        true
     }
 
     pub fn run_game(mut self) -> Game {
+        self = self.find_all_moves();
+        self = self.clear_self_checking_moves();
         loop {
             self.print_board();
             self = self.find_all_moves();
             self = self.take_turn();
 
             if (self.check_for_mate()) {
-                if self.white_turn {
-                    return self;
-                }
                 return self;
             }
 
@@ -44,7 +137,6 @@ impl Game {
     }
 
     pub fn take_turn(mut self) -> Game {
-        let game_clone = self.clone();
         let mut valid_move = false;
 
         if self.white_turn {
@@ -54,10 +146,9 @@ impl Game {
         }
 
         self = self.find_all_moves();
-        //self = self.clear_self_checking_moves();
+        self = self.clear_self_checking_moves();
 
         while !valid_move {
-            self = game_clone.clone();
             let from = Game::take_input();
             let mv_from = string_to_move(&from);
             if self.boards.board[mv_from.x as usize][mv_from.y as usize].occupied {
@@ -77,36 +168,8 @@ impl Game {
                         .moves
                         .contains(&mv_to)
                     {
-                        self = self.do_move(&from, &to);
-                        self.print_board();
-                        //self.print_check_board(true);
-                        self = self.find_all_moves();
-                        for i in (0..8).rev() {
-                            for j in (0..8).rev() {
-                                match self.boards.board[i][j].piece.piece_type {
-                                    PieceType::King => {
-                                        if self.white_turn == self.boards.board[i][j].piece.white {
-                                            if self.white_turn {
-                                                if !self.boards.black_check_board[i][j] {
-                                                    valid_move = true;
-                                                } else {
-                                                    println!("Your king is in check!");
-                                                    self.print_check_board(false);
-                                                }
-                                            } else {
-                                                if !self.boards.white_check_board[i][j] {
-                                                    valid_move = true;
-                                                } else {
-                                                    println!("Your king is in check!");
-                                                    self.print_check_board(false);
-                                                }
-                                            }
-                                        }
-                                    }
-                                    _ => (),
-                                }
-                            }
-                        }
+                        self = self.do_move();
+                        valid_move = true;
                     } else {
                         println!("This is not a valid move!");
                     }
@@ -117,10 +180,15 @@ impl Game {
                 println!("This square does not have a piece!");
             }
         }
+        self.print_board();
+        self = self.find_all_moves();
+        self = self.clear_self_checking_moves();
+
         self
     }
 
     pub fn check_for_mate(&self) -> bool {
+        let mut mate = true;
         if self.white_turn {
             if self.boards.white_check_board[self.b_king_pos.x as usize][self.b_king_pos.y as usize] {
                 for i in 0..8 {
@@ -128,13 +196,16 @@ impl Game {
                         if self.boards.board[i][j].occupied {
                             if !self.boards.board[i][j].piece.white {
                                 if self.boards.board[i][j].piece.moves.len() != 0 {
-                                    println!("Black is mate!");
-                                    return true;
+                                    mate = false;
+                                }else {
+                                    
                                 }
                             }
                         }
                     }
                 }
+            } else {
+                mate = false;
             }
         } else {
             if self.boards.black_check_board[self.w_king_pos.x as usize][self.w_king_pos.y as usize] {
@@ -143,16 +214,22 @@ impl Game {
                         if self.boards.board[i][j].occupied {
                             if self.boards.board[i][j].piece.white {
                                 if self.boards.board[i][j].piece.moves.len() != 0 {
-                                    println!("White is mate!");
-                                    return true;
+                                    mate = false;
                                 }
                             }
                         }
                     }
                 }
+            } else {
+                mate = false;
             }
         }
-        return false;
+        if mate && self.white_turn {
+            println!("Black is mate!");
+        } else if mate {
+            println!("White is mate!");
+        }
+        return mate;
     }
 
     pub fn take_input() -> String {
@@ -192,8 +269,6 @@ impl Game {
         let boards_clone = boards_.clone();
         for i in (0..8) {
             for j in (0..8) {
-                //   print_board(&boards_.board);
-                // println!("");
                 if boards_.board[i][j].occupied {
                     boards_ = self.boards.clone();
                     let mut indexes_to_pop: Vec<usize> = Vec::new();
@@ -201,12 +276,6 @@ impl Game {
                     let white_ = boards_.board[i][j].piece.white;
                     for k in 0..boards_.board[i][j].piece.moves.len() {
                         boards_ = boards_clone.clone();
-                        // self = self.do_move(&Move {
-                        //     x: i as u8,
-                        //     y: j as u8,
-                        // }.move_to_string(),
-                        // &board[i][j].piece.moves[k].move_to_string(),
-                        // );
                         boards_.board = move_piece(
                             &Move {
                                 x: i as u8,
@@ -222,40 +291,24 @@ impl Game {
                             boards_.white_check_board,
                             boards_.black_check_board,
                         );
-                        // println!("i: {}, j: {}", i, j);
 
                         if white_ {
                             if boards_.black_check_board[w_king.x as usize][w_king.y as usize] {
                                 indexes_to_pop.push(k);
-                                // print_board(&boards_.board);
-                                // println!("found self-checking move(white)");
                             }
                         } else {
                             if boards_.white_check_board[b_king.x as usize][b_king.y as usize] {
                                 indexes_to_pop.push(k);
-                                // print_board(&boards_.board);
-                                // println!("found self-checking move(black)");
                             }
                         }
                     }
                     for h in 0..indexes_to_pop.len() {
-                        // println!("{:?}", indexes_to_pop);
                         for l in &self.boards.board[i][j].piece.moves {
-                            //print!("{:?}, ", l.move_to_string());
                         }
-                        /*   println!(
-                            "boardLen: {}, popLen: {}, h: {}",
-                            self.boards.board[i][j].piece.moves.len(),
-                            indexes_to_pop.len(),
-                            i
-                        );*/
                         self.boards.board[i][j]
                             .piece
                             .moves
                             .remove(indexes_to_pop[h] - h);
-                    }
-                    for i in &self.boards.board[i][j].piece.moves {
-                        // i.print_move();
                     }
                 }
             }
@@ -263,14 +316,21 @@ impl Game {
         self
     }
 
-    pub fn do_move(mut self, from: &String, to: &String) -> Game {
-        if (string_to_move(from) == self.w_king_pos) {
-            self.w_king_pos = string_to_move(to);
-        } else if (string_to_move(from) == self.w_king_pos) {
-            self.b_king_pos = string_to_move(to);
+    pub fn do_move(mut self) -> Game {
+        let mut from = string_to_move(&self.move_from);
+        let mut to = string_to_move(&self.move_to);
+
+        if (from == self.w_king_pos) {
+            self.w_king_pos = to.clone();
+        } else if (from == self.w_king_pos) {
+            self.b_king_pos = to.clone();
         }
-        self.boards.board = move_piece(&from, &to, self.boards.board);
-        self = self.clear_self_checking_moves();
+
+    
+        square_to_square(&from, to, &mut self.boards.board);
+        square_to_unoccupied(&from, &mut self.boards.board);
+
+
         self
     }
 
@@ -658,9 +718,7 @@ fn check_move(
 ) -> bool {
     let x_: i8 = (square.x as i8) + x;
     let y_: i8 = (square.y as i8) + y;
-    if (x_ == 7 && y == 4) {
-        square.print_square();
-    }
+
     if x_ <= 7 && x_ >= 0 && y_ >= 0 && y_ <= 7 {
         match square.piece.piece_type {
             PieceType::Pawn => {
