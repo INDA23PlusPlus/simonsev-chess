@@ -3,7 +3,9 @@ This is my chess API...
 
 ## Usage
 To start off you'll want to create a new game instance through:
-'let mut game = Game::new();'
+'''rust
+let mut game = Game::new();
+'''
 This creates a new game with all pieces in their standard position, all possible moves generated and the turn set to white.
 
 To take a turn, you will first want to input the next move by using:
