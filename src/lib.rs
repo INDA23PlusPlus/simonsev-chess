@@ -733,6 +733,8 @@ fn check_move(
                 let check_square: &Square = &board[x_ as usize][y_ as usize];
                 if (y == 0 && !check_square.occupied) {
                     return true;
+                }else if y == 0 {
+                    return false;
                 }
                 if board[x_ as usize][y_ as usize].occupied {
                     if square.piece.white == check_square.piece.white {
