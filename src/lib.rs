@@ -7,7 +7,7 @@ use std::io;
 //
 // move_history not yet implemented
 pub struct Game {
-    boards: Boards,
+    pub boards: Boards,
     pub white_turn: bool,
     pub move_history: Vec<String>,
     w_king_pos: Move,
@@ -15,6 +15,7 @@ pub struct Game {
     move_from: String,
     move_to: String,
     pub mate: bool,
+    pub stalemate: bool,
 }
 
 impl Game {
@@ -34,6 +35,7 @@ impl Game {
             move_from: String::new(),
             move_to: String::new(),
             mate: false,
+            stalemate: false,
         };
         game = game.find_all_moves();
         game = game.clear_self_checking_moves();
@@ -72,6 +74,20 @@ impl Game {
     // Returns self early without doing anything if move_from and move_to 
     // are improperly formatted or if the move is not valid
     pub fn do_turn(mut self) -> Game{
+
+        /*
+        for i in 0..8 {
+            for j in 0..8 {
+                if self.boards.board[i][j].occupied {
+                    if !self.boards.board[i][j].piece.white {
+                        for k in 0..self.boards.board[i][j].piece.moves.len() {
+                            println!("in do_turn 1: {}, {}: {}", i , j, self.boards.board[i][j].piece.moves[k].move_to_string());
+                        }
+                    }
+                        
+                }
+            }
+        }*/
         if !Self::check_input(&self.move_from) || !Self::check_input(&self.move_from) {
             self.reset_moves();
             return self;
@@ -88,15 +104,35 @@ impl Game {
         self = self.clear_self_checking_moves();
         self.reset_moves();
 
+        /*
+        for i in 0..8 {
+            for j in 0..8 {
+                if self.boards.board[i][j].occupied {
+                    if !self.boards.board[i][j].piece.white {
+                        for k in 0..self.boards.board[i][j].piece.moves.len() {
+                            println!("in do_turn 2: {}, {}: {}", i , j, self.boards.board[i][j].piece.moves[k].move_to_string());
+                        }
+                    }
+                        
+                }
+            }
+        }*/
+        
+
         if(self.check_for_mate()) {
             self.mate = true;
+            return self;
+        }
+
+        if self.check_for_stalemate(){
+            self.stalemate = true;
             return self;
         }
 
         self.white_turn = !self.white_turn;
         self
     }
-    
+
     fn reset_moves(&mut self){
         self.move_from = String::from("");
         self.move_to = String::from("2");
@@ -110,6 +146,7 @@ impl Game {
     fn check_move_valid(&self) -> bool {
         let mv_from = string_to_move(&self.move_from);
         let mv_to = string_to_move(&self.move_to);
+
 
         if !self.boards.board[mv_from.x as usize][mv_from.y as usize].occupied {
             return false;
@@ -227,12 +264,45 @@ impl Game {
                 mate = false;
             }
         }
-        if mate && self.white_turn {
-            println!("Black is mate!");
-        } else if mate {
-            println!("White is mate!");
-        }
         return mate;
+    }
+
+    pub fn check_for_stalemate(&self) -> bool {
+        let mut stalemate = true;
+        if self.white_turn{
+            if !self.boards.white_check_board[self.b_king_pos.x as usize][self.b_king_pos.y as usize] {
+                for i in 0..8 {
+                    for j in 0..8 {
+                        if self.boards.board[i][j].occupied {
+                            if !self.boards.board[i][j].piece.white {
+                                if self.boards.board[i][j].piece.moves.len() != 0 {
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                stalemate = false;
+            }
+        }else {
+            if !self.boards.black_check_board[self.w_king_pos.x as usize][self.w_king_pos.y as usize] {
+                for i in 0..8 {
+                    for j in 0..8 {
+                        if self.boards.board[i][j].occupied {
+                            if self.boards.board[i][j].piece.white {
+                                if self.boards.board[i][j].piece.moves.len() != 0 {
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                stalemate = false;
+            }
+        }
+        stalemate
     }
 
     pub fn take_input() -> String {
@@ -272,13 +342,21 @@ impl Game {
         let boards_clone = boards_.clone();
         for i in (0..8) {
             for j in (0..8) {
+                if i == b_king.x as usize&& j == b_king.y as usize {
+                    continue;
+                }
+                if i == w_king.x as usize && j == w_king.y as usize{
+                    continue;
+                }
+                
                 if boards_.board[i][j].occupied {
                     boards_ = self.boards.clone();
                     let mut indexes_to_pop: Vec<usize> = Vec::new();
 
                     let white_ = boards_.board[i][j].piece.white;
                     for k in 0..boards_.board[i][j].piece.moves.len() {
-                        boards_ = boards_clone.clone();
+                        //boards_ = boards_clone.clone();
+                        boards_ = self.boards.clone();
                         boards_.board = move_piece(
                             &Move {
                                 x: i as u8,
@@ -302,12 +380,15 @@ impl Game {
                         } else {
                             if boards_.white_check_board[b_king.x as usize][b_king.y as usize] {
                                 indexes_to_pop.push(k);
+                                if i == 7 && j == 4 {
+                                }
                             }
                         }
                     }
                     for h in 0..indexes_to_pop.len() {
                         for l in &self.boards.board[i][j].piece.moves {
                         }
+
                         self.boards.board[i][j]
                             .piece
                             .moves
@@ -325,7 +406,7 @@ impl Game {
 
         if (from == self.w_king_pos) {
             self.w_king_pos = to.clone();
-        } else if (from == self.w_king_pos) {
+        } else if (from == self.b_king_pos) {
             self.b_king_pos = to.clone();
         }
 
@@ -711,7 +792,7 @@ pub fn string_to_move(input: &String) -> Move {
     Move { x: x, y: y }
 }
 
-fn check_move(
+pub fn check_move(
     square: &Square,
     x: i8,
     y: i8,
@@ -809,7 +890,7 @@ fn moves_pawn(
     let y = square.y;
 
     if square.piece.white {
-        if x == 1 {
+        if x == 1 && !board[2 as usize][y as usize].occupied{
             if check_move(
                 &square,
                 2,
@@ -852,7 +933,7 @@ fn moves_pawn(
             moves.push(Move { x: x + 1, y: y + 1 });
         }
     } else {
-        if x == 6 {
+        if x == 6 && !board[5 as usize][y as usize].occupied {
             if check_move(
                 &square,
                 -2,
@@ -1145,6 +1226,9 @@ fn moves_queen(
                     &mut black_check_board,
                 )
             {
+                if board[square.x as usize][(square.y as i8 + k_) as usize].occupied {
+                    booly = false;
+                }
                 moves.push(Move {
                     x: x,
                     y: (y as i8 + k_) as u8,
