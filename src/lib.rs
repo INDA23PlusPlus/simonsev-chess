@@ -143,9 +143,9 @@ impl Game {
         return self.boards.board.clone();
     }
 
-    fn check_move_valid(&self) -> bool {
-        let mv_from = string_to_move(&self.move_from);
-        let mv_to = string_to_move(&self.move_to);
+    pub fn check_move_valid(&self) -> bool {
+        let mv_from: Move = string_to_move(&self.move_from);
+        let mv_to: Move = string_to_move(&self.move_to);
 
 
         if !self.boards.board[mv_from.x as usize][mv_from.y as usize].occupied {
